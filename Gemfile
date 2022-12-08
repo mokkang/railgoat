@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 source "https://rubygems.org"
 
+gem 'veracode'
+
 #don't upgrade
 gem "rails", "6.0.0"
 
