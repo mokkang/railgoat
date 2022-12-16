@@ -1,0 +1,67 @@
+image: maven:3.5.3
+set-variables: &set-variables
+  variables:
+    - name: BUILD_VERACODE
+      default: "${BUILD_VERACODE}"
+      
+pipelines:
+  branches:
+    master:
+      - step:
+          runs-on:
+            - self.hosted
+            - linux
+          name: 'build'
+          image: ruby:2.6.5
+          script:
+            - gem install bundler -v '1.17.3'
+            - gem install veracode
+            - bundle install
+            - bundle exec veracode prepare
+            - ls tmp | grep .zip > veracode-build.zip 
+            - cp tmp/** /opt/atlassian/pipelines/agent/build/veracode.zip
+          set-variables: &set-variables
+            variables:
+              - name: veracode-build.zip
+                default: "${VERACODE-BUILD.ZIP}"
+          artifacts:
+            - tmp/**
+            - /opt/atlassian/pipelines/agent/build/veracode*.zip
+
+#default:
+#    - step:
+#        name: 'Veracode Software Composition Analysis'
+#        size: 2x
+#        script:
+#            - curl -sSL https://download.sourceclear.com/ci.sh | sh -s scan --update-advisor --skip-vms
+#   - step:
+#        name: Veracode SAST Packaging & SAST upload
+#        image: ruby:2.7.3
+#        script:
+#            - source bin/ci/bitbucket-set-envs
+#            - gem install bundler -v 1.17.3
+#            - bundle install
+#            - bundle exec veracode prepare
+      - parallel:
+        - step: 
+            runs-on:
+              - self.hosted
+              - linux
+            name: 1st_test
+            image: veracode/api-wrapper-java:latest
+            artifacts:
+              download: true
+              path: $BITBUCKET_WORKSPACE/railgoat/
+                - veracode-build.zip
+            script:
+              - ls -lhart
+              - ls -lhart ./tmp/
+              - pwd
+              - java -jar /opt/veracode/api-wrapper.jar 
+                  -vid ${VERACODE_API_ID}
+                  -vkey ${VERACODE_API_KEY} 
+                  -action UploadAndScan
+                  -createprofile true
+                  -appname railgoat
+                  -version $BITBUCKET_BUILD_NUMBER
+                  -filepath /opt/atlassian/pipelines/agent/build/tmp/veracode*.zip
