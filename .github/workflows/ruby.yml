@@ -6,16 +6,9 @@ on:
   pull_request:
     branches: [ "master" ]
 
-permissions:
-  contents: read
-
 jobs:
   test:
     runs-on: self-hosted
-    strategy:
-      matrix:
-        ruby-version: ['2.6', '2.7', '3.0']
-
     steps:
     - uses: actions/checkout@v3
     - name: Set up Ruby
@@ -24,8 +17,7 @@ jobs:
         ruby-version: 2.6.5
         bundler-cache: true # runs 'bundle install' and caches installed gems automatically
     - name: Run tests
-      run: 
+      run: gem install bundler -v '1.17.3'
            gem install veracode
-           gem install bundler -v '1.17.3'
            bundle install 
            bundle exec veracode prepare
