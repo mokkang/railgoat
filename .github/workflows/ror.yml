@@ -13,13 +13,10 @@ jobs:
       with:
         path: ~/local/rubies
         key: ruby-2.6.5
-    - uses: clupprich/ruby-build-action@master
-      id: ruby
-      with:
-        ruby-version: 2.6.5
-        cache-available: ${{ steps.cache.outputs.cache-hit == 'true' }}
-    - name: Print version
-      run: ${{ steps.ruby.outputs.ruby-path }} --version
+    - name: setup-rails
+      # You may pin to the exact commit or the version.
+      # uses: setup-rails/setup-rails@eec3e0d054ee818c43c8d1e4921e6284481b4dfd
+      uses: setup-rails/setup-rails@v1
     - name: Set up Node
       uses: actions/setup-node@v1
       with:
